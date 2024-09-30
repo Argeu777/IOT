@@ -9,7 +9,7 @@ este projeto foi desenvolvido dentro do Tinkercard, na disciplina de Internet da
 * 6 Resistores de 1 KOhms
 
 # Montagem do Circuito
-  ![ledspiscantes](arquivo.png)
+  ![ledspiscantes](ledspiscantes.png)
 
 
 
