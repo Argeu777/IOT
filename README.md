@@ -10,7 +10,7 @@ todas as vezes que alguém se aproximar de pelo menos (50cm) do sensor.
 - 10 resistores
 
   # Montagem do Circuito
- ![imagem](SemáforoInteligente.png)
+ ![imagem](semaforointeligente.png)
  
   # Explicação do Código
    Projeto Microcontroladores - Semáforo de veículos e pedestre controlado por sensor
