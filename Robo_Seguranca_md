@@ -1,0 +1,53 @@
+# Projeto Robo de Segurança com sensor
+
+Este projeto foi desenvolvido no Tinkecard, na disciplina deInternet das coisas (IOT), para a criação de um protótipo de cabeça
+de robo, que ao detectar algum objeto/pessoa/parede a sua frente emita um sinal ao corpo dele e faça-o girar para o outro lado.
+
+## Componentes Usados
+* 1 Arduino Uno
+* 1 Placa de Ensaio
+* 1 Micro Servo
+* 1 led
+* 11 Jumper Macho
+* 1 Resistro de 1KOhms
+
+## Montagem do Circuito
+![imagem](roboseguranca.png) 
+
+## Explicação Do Código 
+
+#include <Servo.h>
+const int trigPin = 9;
+const int echoPin = 10;
+const int ledPin = 13;
+Servo myservo;
+
+void setup() {
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(ledPin, OUTPUT);
+  myservo.attach(11);
+  Serial.begin(9600);
+}
+
+void loop() {
+  long duration, distance;
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  
+  duration = pulseIn(echoPin, HIGH);
+  distance = (duration  2)  29.1;
+  
+  if (distance < 20) {
+    digitalWrite(ledPin, HIGH);
+    myservo.write(90);  Gira a cabeça para a direita
+    delay(1000);
+    myservo.write(0);  Gira a cabeça para a esquerda
+  } else {
+    digitalWrite(ledPin, LOW);
+  }
+  delay(500);
+}
