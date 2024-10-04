@@ -1,0 +1,58 @@
+## Projeto Temperatura de Ambiente
+
+Este projeto foi desenvolvido dentro do Tinkercard, na disciplina de Internet das Coisas(IOT), para a criação de um protótipo com 
+arduino que consegue medir temperatura de certo ambiente.
+
+## Componentes Usados
+
+* 1 Arduino Uno
+* 1 LCD 16X2 (I2C)
+* 1 Sensor de Temperatura
+* 1 Placa de Ensaio
+* 6 Jumper Macho-macho
+* 3 Jumper Macho-Feminino
+
+##  Montagem do Circuito
+
+![imagem](temperaturadeambiente.png)
+
+
+## Explicação do Código
+
+ BIBLIOTECA LCD COM MODULO I2C
+#include <LiquidCrystal_I2C.h> 
+
+ INICIALIZAR LCD
+LiquidCrystal_I2C telaLcd(0x20, 16, 2);
+
+ Variável do sensor de temperatura
+int sensorTMP = A0;
+
+ Capturar temperatura
+int valorlido = 0;
+
+void setup() {
+   Definir o sensor como entrada
+  pinMode(sensorTMP, INPUT);
+   Ligar a tela LCD
+  telaLcd.init();
+   Limpar os dados que aparecem
+  telaLcd.clear();
+   Aumentar a luminosidade do LCD
+  telaLcd.backlight();
+}
+
+void loop() {
+   Capturar o valor da temperatura
+  valorlido = analogRead(sensorTMP);
+   Converter valor da tensão
+  float tensao = (valorlido * 5.0)  1024;
+   Converter a tensão em graus Celsius
+  float temperatura = (tensao - 0.5) * 100;
+   Imprimir valor da temperatura no LCD
+  telaLcd.setCursor(0, 0);
+  telaLcd.print("Temperatura:");
+  telaLcd.setCursor(0, 1);
+  telaLcd.print(temperatura);
+  telaLcd.print(" C");
+}
