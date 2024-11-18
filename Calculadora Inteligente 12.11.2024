@@ -1,0 +1,23 @@
+** CALCULADORA INTELIGENTE
+Este projeto foi desenvolvido na matéria (Desenvolvimento De Sistemas) com intuito de criar uma calculadora 
+virtual capaz de calcular de todas as formas possiveis
+
+* CÓDIGO
+
+package com.mycompany.calculadoramat;
+import view.TelaPrincipal;
+
+
+/**
+ *
+ * @author jhessikkaelly
+ */
+public class CalculadoraMat {
+
+    public static void main(String[] args) {
+        // criando objeto da tela da calculadora
+        TelaPrincipal tela = new TelaPrincipal();
+        // deixando a tela visivel
+        tela.setVisible(true);
+    }
+}
