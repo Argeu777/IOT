@@ -1,0 +1,181 @@
+** Trabalho Grandprix **
+
+Esse projeto foi criado na materia (Desenvolvimento de Sistemas IOT) pelos alunos ( Argeu dutra, Ernesto Guimaraes, Samuel Sousa, Andre carlos)
+este projeto foi criado com intuito simples de Reserva de salas para ser utilizado por dois tipos de usuarios o porteiro
+e a equipe da COPED, que designará as salas e turnos para os professores.
+
+** Código **
+
+pip install Flask Flask-SQLAlchemy Flask-WTF Flask-Login
+from flask import Flask, render_template, redirect, url_for, request, flash
+from flask_sqlalchemy import SQLAlchemy
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, SubmitField, SelectField
+from wtforms.validators import DataRequired
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'mysecret'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+db = SQLAlchemy(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+    role = db.Column(db.String(50), nullable=False)  # 'porteiro' ou 'coped'
+
+class Reservation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    room = db.Column(db.String(100), nullable=False)
+    timeslot = db.Column(db.String(100), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    status = db.Column(db.String(50), nullable=False)  # 'reservado', 'em uso', 'devolvido'
+
+class LoginForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Login')
+
+class ReservaForm(FlaskForm):
+    room = StringField('Sala', validators=[DataRequired()])
+    timeslot = StringField('Horário', validators=[DataRequired()])
+    submit = SubmitField('Reservar')
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user and user.password == form.password.data:
+            login_user(user)
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Login inválido. Por favor, tente novamente.')
+    return render_template('login.html', form=form)
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    if current_user.role == 'coped':
+        return redirect(url_for('reserva'))
+    elif current_user.role == 'porteiro':
+        return redirect(url_for('gerenciar_chaves'))
+    return redirect(url_for('index'))
+
+@app.route('/reserva', methods=['GET', 'POST'])
+@login_required
+def reserva():
+    form = ReservaForm()
+    if form.validate_on_submit():
+        nova_reserva = Reservation(room=form.room.data, timeslot=form.timeslot.data, user_id=current_user.id, status='reservado')
+        db.session.add(nova_reserva)
+        db.session.commit()
+        flash('Sala reservada com sucesso!')
+    reservas = Reservation.query.all()
+    return render_template('reserva.html', form=form, reservas=reservas)
+
+@app.route('/gerenciar_chaves')
+@login_required
+def gerenciar_chaves():
+    reservas = Reservation.query.all()
+    return render_template('gerenciar_chaves.html', reservas=reservas)
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+if __name__ == '__main__':
+    app.run(debug=True)
+from app import db
+
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+    role = db.Column(db.String(50), nullable=False)  # 'porteiro' ou 'coped'
+
+class Reservation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    room = db.Column(db.String(100), nullable=False)
+    timeslot = db.Column(db.String(100), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    status = db.Column(db.String(50), nullable=False)  # 'reservado', 'em uso', 'devolvido'
+from app import db
+db.create_all()
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Reserva de Salas</title>
+</head>
+<body>
+    <h1>Bem-vindo ao Sistema de Reserva de Salas!</h1>
+    <a href="{{ url_for('login') }}">Login</a>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body>
+    <h1>Login</h1>
+    <form method="POST" action="{{ url_for('login') }}">
+        {{ form.hidden_tag() }}
+        {{ form.username.label }} {{ form.username(size=32) }}<br>
+        {{ form.password.label }} {{ form.password(size=32) }}<br>
+        {{ form.submit() }}
+    </form>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Reservar Sala</title>
+</head>
+<body>
+    <h1>Reservar Sala</h1>
+    <form method="POST" action="{{ url_for('reserva') }}">
+        {{ form.hidden_tag() }}
+        {{ form.room.label }} {{ form.room(size=32) }}<br>
+        {{ form.timeslot.label }} {{ form.timeslot(size=32) }}<br>
+        {{ form.submit() }}
+    </form>
+    <h2>Reservas Atuais</h2>
+    <ul>
+        {% for reserva in reservas %}
+            <li>{{ reserva.room }} - {{ reserva.timeslot }} - {{ reserva.status }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerenciar Chaves</title>
+</head>
+<body>
+    <h1>Gerenciar Chaves</h1>
+    <ul>
+        {% for reserva in reservas %}
+            <li>{{ reserva.room }} - {{ reserva.timeslot }} - {{ reserva.status }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
